@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       ">
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+         <!--<property name="mapperLocations" value=""/>-->
+    </bean>
+
+    <bean id="sqlSessionTemlate" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg name="sqlSessionFactory" index="0" ref="sqlSessionFactory"/>
+        <!--<constructor-arg name="executorType" index="1" value="BATCH"/>-->
+    </bean>
+    <!-- 注册Mapper方式二：也可不指定特定mapper，而使用自动扫描包的方式来注册各种Mapper ，配置如下：-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.livvy.appblog.mapper" />
+    </bean>
+
+    <!--<bean id="UserMapperFactoryBean" class="org.mybatis.spring.mapper.MapperFactoryBean">-->
+        <!--<property name="mapperInterface" value="com.livvy.appblog.dao.UserDao"/>-->
+        <!--<property name="sqlSessionFactory" ref="sqlSessionFactory"/>-->
+    <!--</bean>-->
+    <bean id="sockIOPool" class="com.danga.MemCached.SockIOPool"
+          factory-method="getInstance" init-method="initialize" destroy-method="shutDown">
+        <constructor-arg>
+            <value>neeaMemcachedPool</value>
+        </constructor-arg>
+        <property name="servers">
+            <list>
+                <value>${memcache.server}</value>
+            </list>
+        </property>
+        <property name="initConn">
+            <value>${memcache.initConn}</value>
+        </property>
+        <property name="maxConn">
+            <value>${memcache.maxConn}</value>
+        </property>
+        <property name="maintSleep">
+            <value>${memcache.maintSleep}</value>
+        </property>
+        <property name="nagle">
+            <value>${memcache.nagle}</value>
+        </property>
+        <property name="socketTO">
+            <value>${memcache.socketTO}</value>
+        </property>
+        <property name="socketConnectTO">
+            <value>${mamcache.socketConnectTO}</value>
+        </property>
+    </bean>
+
+    <bean id="memcachedClient" class="com.danga.MemCached.MemCachedClient">
+        <constructor-arg>
+            <value>neeaMemcachedPool</value>
+        </constructor-arg>
+        <!--<property name="compressEnable">-->
+            <!--<value>true</value>-->
+        <!--</property>-->
+        <!--<property name="compressThreshold">-->
+            <!--<value>4096</value>-->
+        <!--</property>-->
+    </bean>
+
+    <bean id="memcachedIntegrated" class="com.livvy.appblog.utils.memcached.MemcachedIntegrated"/>
+    <aop:config>
+        <aop:aspect id="TestAspect" ref="memcachedIntegrated">
+            <!--配置com.×××.dao.ibatis包下所有已get开头的方法-->
+            <aop:pointcut id="daoIntegarte"
+                          expression="execution(* com.livvy.appblog.dao.impl.*.get*(..))" />
+            <aop:around pointcut-ref="daoIntegarte" method="doAround"/>
+        </aop:aspect>
+    </aop:config>
+
+</beans>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--namespace该是对应类的完整限定名 -->
+<mapper namespace="com.livvy.appblog.mapper.UserMapper">
+    <!--定义java bean的属性与数据库表的列之间的映射。type="User"用到了configuration.xml中定义的别名 -->
+    <resultMap id="userMap" type="com.livvy.appblog.bean.User">
+        <!--id映射 -->
+        <id property="id" column="ID" />
+        <!--普通属性映射 -->
+        <result property="userLogin" column="user_login" />
+        <result property="userPass" column="user_pass" />
+        <result property="userNicename" column="user_nicename" />
+        <result property="userEmail" column="user_email" />
+        <result property="userUrl" column="user_url" />
+        <result property="userRegistered" column="user_registered" />
+        <result property="userActivationKey" column="user_activation_key" />
+        <result property="userStatus" column="user_status" />
+        <result property="displayName" column="display_name" />
+    </resultMap>
+
+    <select id="getByUserId" parameterType="int" resultMap="userMap">
+		SELECT * FROM users WHERE id = #{id}
+	</select>
+</mapper>
